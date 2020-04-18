@@ -1,0 +1,58 @@
+* Useful github-fu
+** Get a list of releases
+
+#+BEGIN_SRC sh :results output 
+curl https://api.github.com/repos/unisonweb/unison/releases  | \
+  jq --raw-output '.[] | ( [(.created_at | fromdateiso8601 | strftime("%Y-%m-%d ") ) + .tag_name ]) | add ' 
+#+END_SRC
+
+#+begin_example
+2020-03-12 release/M1i
+2020-01-20 release/M1h
+2019-11-26 release/M1g
+2019-11-15 release/M1f
+2019-10-29 release/M1e
+2019-09-14 release/M1d
+2019-08-06 release/M1c
+2019-08-06 release/M1b
+2019-08-02 release/M1a
+2019-08-01 release/M1
+#+end_example
+
+** Get the most recent release:
+
+#+BEGIN_SRC sh :results output
+curl https://api.github.com/repos/unisonweb/unison/releases  | jq -r '.[0] | .tag_name ' 
+#+END_SRC
+
+#+begin_src text
+release/M1i
+#+end_src
+
+** Get a list of all tags
+
+#+BEGIN_SRC sh :results output 
+curl https://api.github.com/repos/unisonweb/unison/tags  | jq 'map(.name)'
+#+END_SRC
+
+#+begin_src javascript
+[
+  "topic/abt/checkpoint",
+  "rip-rt0",
+  "remove-codegen-v1",
+  "release/M2-base",
+  "release/M1",
+  "release/M1i",
+  "release/M1h",
+  "release/M1g",
+  "release/M1f",
+  "release/M1e",
+  "release/M1d",
+  "release/M1c",
+  "release/M1b",
+  "release/M1a",
+  "jvm-runtime",
+  "branchful"
+]
+#+end_src
+

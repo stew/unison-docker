@@ -3,7 +3,14 @@
 # ----------------------------------------------------------
 FROM debian:stable as BASE
 RUN adduser --home /opt/unison --disabled-password unison
-RUN apt-get update && apt-get install -y git wget libncurses5 less
+    
+RUN apt-get update                                       && \
+    apt-get install -y git wget libncurses5 less locales && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen           && \
+    dpkg-reconfigure --frontend=noninteractive locales   && \
+    update-locale LANG=en_US.UTF-8
+
+ENV LANG=en_US.UTF-8
 
 # ----------------------------------------------------------
 #  Target: RELEASE - an image that just contains
@@ -22,13 +29,13 @@ FROM BASE as RELEASE
 ARG release=M1i
 ARG release_url=https://github.com/unisonweb/unison/releases/download/release%2F$release/unison-linux64.tar.gz
 
-RUN cd /opt/unison                                && \
-    wget -O- $release_url | tar xzf -             && \
-    mv ./ucm /usr/local/bin/ucm                   && \
+RUN cd /opt/unison                    && \
+    wget -O- $release_url | tar xzf - && \
+    mv ./ucm /usr/local/bin/ucm       && \
     chmod 555 /usr/local/bin/ucm
 
 USER unison
-
+WORKDIR /opt/unison/codebase
 ENTRYPOINT ["/usr/local/bin/ucm", "-codebase","/opt/unison/codebase"]
 
 # --------------------------------------------------------------------
@@ -60,7 +67,7 @@ RUN cd /opt/unison                                                && \
     cd unison                                                     && \
     git submodule init                                            && \
     stack build                                                   && \
-    stack install --prefix /opt/unison/install
+    stack install --local-bin-path /opt/unison/install
 
 # ----------------------------------------------------------
 #  Target: HEAD - An image containing a binary built from
@@ -68,8 +75,8 @@ RUN cd /opt/unison                                                && \
 # ----------------------------------------------------------
 
 FROM BASE as HEAD
-COPY --from=BUILD /opt/unison/install/bin/unison /usr/local/bin/ucm
+COPY --from=BUILD /opt/unison/install/unison /usr/local/bin/ucm
 
 VOLUME ["/opt/unison/codebase"]
+WORKDIR /opt/unison/codebase
 ENTRYPOINT ["/usr/local/bin/ucm", "-codebase","/opt/unison/codebase"]
-
